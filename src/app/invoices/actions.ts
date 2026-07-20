@@ -36,7 +36,31 @@ export async function createInvoiceAction(data: InvoiceFormValues) {
     return { error: `Plan limit reached. You can only create ${usage.limit} invoices per month on your current plan.` }
   }
 
-  const { items, tax, discount, ...invoiceData } = validatedFields.data
+  const { items, tax, discount, client_name, client_email, ...invoiceData } = validatedFields.data
+
+  let finalClientId = invoiceData.client_id;
+
+  // If no client_id is provided, create a new client
+  if (!finalClientId) {
+    if (!client_name) {
+      return { error: 'Client name is required when creating a new client' };
+    }
+    const { data: newClient, error: clientError } = await supabase
+      .from('clients')
+      .insert({
+        business_id: userRole.business_id,
+        name: client_name,
+        email: client_email || null,
+      })
+      .select()
+      .single()
+
+    if (clientError) {
+      console.error('Client creation error:', clientError)
+      return { error: 'Failed to create new client: ' + clientError.message }
+    }
+    finalClientId = newClient.id;
+  }
 
   // Calculate subtotal
   const subtotal = items.reduce((acc, item) => acc + (item.quantity * item.unit_price), 0)
@@ -47,6 +71,7 @@ export async function createInvoiceAction(data: InvoiceFormValues) {
     .from('invoices')
     .insert({
       ...invoiceData,
+      client_id: finalClientId,
       business_id: userRole.business_id,
       subtotal,
       tax,

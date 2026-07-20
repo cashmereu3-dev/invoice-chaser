@@ -6,7 +6,8 @@ import {
   CreditCard,
   Settings,
   PieChart,
-  Bot
+  Bot,
+  PenTool
 } from "lucide-react";
 
 export function AppSidebar() {
@@ -41,6 +42,13 @@ export function AppSidebar() {
             >
               <FileText className="h-4 w-4" />
               Invoices
+            </Link>
+            <Link
+              href="/dashboard/invoice-builder"
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+            >
+              <PenTool className="h-4 w-4" />
+              Invoice Builder
             </Link>
             <Link
               href="/settings/payments"
